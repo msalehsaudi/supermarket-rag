@@ -116,28 +116,57 @@ AVAILABLE SUPERMARKET PRODUCTS (retrieved from database):
 {formatted_products}
 
 Create a {days}-day meal plan using ONLY products from the list above.
-For each day, provide breakfast, lunch, dinner, and a snack.
-Use real prices from the product list.
-Make sure the total cost stays within €{budget:.2f} budget.
-Include nutritional information when available.
 
-Format your response as:
-🍽️ {days}-Day {diet_type.replace('_', ' ').title()} Meal Plan - €{budget:.2f} Budget
+IMPORTANT: Your response must have TWO CLEAR SECTIONS:
+
+=== 🛒 SHOPPING CART LIST ===
+List ALL products needed for the entire {days}-day meal plan with exact quantities:
+• Product Name (Brand) - Quantity needed - Total price
+• Product Name (Brand) - Quantity needed - Total price
+...
+💰 Total Shopping Cost: €[total]
+
+=== 📝 RECIPES & INSTRUCTIONS ===
+For each day, provide detailed recipes using ONLY the shopping cart products:
 
 📅 Day 1:
-🥣 Breakfast: [Meal name using products above] - €[cost]
-🥗 Lunch: [Meal name using products above] - €[cost]  
-🍽️ Dinner: [Meal name using products above] - €[cost]
-🍎 Snack: [Meal name using products above] - €[cost]
-📊 Nutrition: [calories] kcal, [protein]g protein
+🥣 Breakfast: [Recipe Name]
+   🛒 Ingredients: [Products from shopping cart with quantities]
+   👨‍🍳 Instructions: [Step-by-step cooking instructions]
+   ⏱️ Time: [Prep + cook time]
+   📊 Nutrition: [Estimated nutrition]
 
-[Continue for all days...]
+🥗 Lunch: [Recipe Name]
+   🛒 Ingredients: [Products from shopping cart with quantities]
+   👨‍🍳 Instructions: [Step-by-step cooking instructions]
+   ⏱️ Time: [Prep + cook time]
+   📊 Nutrition: [Estimated nutrition]
 
-💰 Total estimated cost: €[total]
-🥗 Average daily cost: €[average]
-📊 Weekly nutrition summary
+🍽️ Dinner: [Recipe Name]
+   🛒 Ingredients: [Products from shopping cart with quantities]
+   👨‍🍳 Instructions: [Step-by-step cooking instructions]
+   ⏱️ Time: [Prep + cook time]
+   📊 Nutrition: [Estimated nutrition]
 
-IMPORTANT: Use ONLY the products listed above. Be realistic about costs and quantities."""
+🍎 Snack: [Recipe Name]
+   🛒 Ingredients: [Products from shopping cart with quantities]
+   �‍🍳 Instructions: [Step-by-step cooking instructions]
+   ⏱️ Time: [Prep + cook time]
+   📊 Nutrition: [Estimated nutrition]
+
+[Continue for all {days} days...]
+
+📋 WEEKLY SUMMARY:
+💰 Total Cost: €[total]
+🥗 Total Nutrition: [Weekly totals]
+🛒 Shopping Items: [Number of unique items]
+
+CRITICAL: 
+- Use ONLY products listed in AVAILABLE SUPERMARKET PRODUCTS
+- Shopping cart must list exact quantities needed
+- Recipes must use ONLY shopping cart ingredients
+- Include real prices from product list
+- Be specific about cooking instructions and times"""
         
         try:
             response = self.model.generate_content(prompt)
