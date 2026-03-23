@@ -1,0 +1,968 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pantry — Supermarket AI</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0e0f0c;
+    --surface: #161712;
+    --surface2: #1d1e1a;
+    --border: rgba(255,255,255,0.07);
+    --border2: rgba(255,255,255,0.12);
+    --text: #e8e6df;
+    --muted: #7a7870;
+    --accent: #b4e05a;
+    --accent-dim: rgba(180,224,90,0.12);
+    --accent-glow: rgba(180,224,90,0.06);
+    --user-bg: #1f2119;
+    --tag-bg: rgba(180,224,90,0.1);
+    --red: #e06060;
+    --amber: #d4a843;
+    --radius: 16px;
+    --radius-sm: 10px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    height: 100vh;
+    display: flex;
+    overflow: hidden;
+    font-size: 14px;
+  }
+
+  /* ── SIDEBAR ── */
+  .sidebar {
+    width: 240px;
+    flex-shrink: 0;
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    padding: 20px 14px;
+    gap: 8px;
+  }
+
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 6px 8px 18px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 4px;
+  }
+
+  .logo-icon {
+    width: 32px; height: 32px;
+    background: var(--accent);
+    border-radius: 9px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px;
+  }
+
+  .logo-text {
+    font-family: 'Instrument Serif', serif;
+    font-size: 20px;
+    color: var(--text);
+    letter-spacing: -0.3px;
+  }
+
+  .logo-sub {
+    font-size: 10px;
+    color: var(--muted);
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    margin-top: 1px;
+  }
+
+  .new-chat-btn {
+    display: flex; align-items: center; gap: 8px;
+    padding: 9px 12px;
+    background: var(--accent-dim);
+    border: 1px solid rgba(180,224,90,0.2);
+    border-radius: var(--radius-sm);
+    color: var(--accent);
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s;
+    font-family: inherit;
+    width: 100%;
+  }
+  .new-chat-btn:hover { background: rgba(180,224,90,0.18); }
+
+  .section-label {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: var(--muted);
+    padding: 12px 8px 4px;
+  }
+
+  .chat-item {
+    padding: 9px 10px;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    color: var(--muted);
+    font-size: 13px;
+    transition: all 0.15s;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .chat-item:hover, .chat-item.active {
+    background: var(--surface2);
+    color: var(--text);
+  }
+  .chat-item.active { color: var(--text); }
+
+  .chat-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--accent);
+    flex-shrink: 0;
+    opacity: 0.6;
+  }
+
+  .sidebar-footer {
+    margin-top: auto;
+    padding-top: 12px;
+    border-top: 1px solid var(--border);
+    display: flex; flex-direction: column; gap: 4px;
+  }
+
+  .stat-row {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 6px 8px;
+  }
+  .stat-label { font-size: 11px; color: var(--muted); }
+  .stat-value { font-size: 11px; color: var(--accent); font-weight: 500; }
+
+  /* ── MAIN ── */
+  .main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    background: var(--bg);
+  }
+
+  /* Header */
+  .header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 16px 28px;
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+
+  .header-title {
+    font-family: 'Instrument Serif', serif;
+    font-size: 17px;
+    color: var(--text);
+    letter-spacing: -0.2px;
+  }
+
+  .header-badges {
+    display: flex; gap: 6px; align-items: center;
+  }
+
+  .badge {
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.2px;
+  }
+  .badge-green { background: var(--tag-bg); color: var(--accent); border: 1px solid rgba(180,224,90,0.15); }
+  .badge-gray { background: var(--surface2); color: var(--muted); border: 1px solid var(--border); }
+
+  /* Chat window */
+  .chat-window {
+    flex: 1;
+    overflow-y: auto;
+    padding: 32px 28px;
+    display: flex;
+    flex-direction: column;
+    gap: 28px;
+    scrollbar-width: thin;
+    scrollbar-color: var(--surface2) transparent;
+  }
+  .chat-window::-webkit-scrollbar { width: 4px; }
+  .chat-window::-webkit-scrollbar-track { background: transparent; }
+  .chat-window::-webkit-scrollbar-thumb { background: var(--surface2); border-radius: 4px; }
+
+  /* Welcome screen */
+  .welcome {
+    display: flex; flex-direction: column; align-items: center;
+    justify-content: center; flex: 1;
+    gap: 12px;
+    padding: 40px 0;
+    animation: fadeUp 0.5s ease both;
+  }
+
+  .welcome-icon {
+    font-size: 42px;
+    margin-bottom: 4px;
+  }
+
+  .welcome-title {
+    font-family: 'Instrument Serif', serif;
+    font-size: 32px;
+    color: var(--text);
+    letter-spacing: -0.5px;
+    text-align: center;
+  }
+
+  .welcome-sub {
+    color: var(--muted);
+    font-size: 14px;
+    text-align: center;
+    line-height: 1.6;
+    max-width: 400px;
+  }
+
+  /* Suggestion chips */
+  .chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: center;
+    margin-top: 8px;
+    max-width: 580px;
+  }
+
+  .chip {
+    padding: 8px 14px;
+    border-radius: 40px;
+    background: var(--surface);
+    border: 1px solid var(--border2);
+    color: var(--text);
+    font-size: 12.5px;
+    cursor: pointer;
+    transition: all 0.15s;
+    font-family: inherit;
+  }
+  .chip:hover {
+    background: var(--surface2);
+    border-color: rgba(180,224,90,0.3);
+    color: var(--accent);
+  }
+
+  /* Messages */
+  .msg {
+    display: flex;
+    gap: 12px;
+    animation: fadeUp 0.3s ease both;
+  }
+
+  .msg-avatar {
+    width: 30px; height: 30px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px;
+    margin-top: 2px;
+  }
+  .msg-avatar.user { background: var(--surface2); border: 1px solid var(--border2); }
+  .msg-avatar.ai { background: var(--accent); color: #0e0f0c; }
+
+  .msg-body { flex: 1; min-width: 0; }
+
+  .msg-name {
+    font-size: 11px;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--muted);
+    margin-bottom: 6px;
+  }
+
+  .msg-text {
+    line-height: 1.65;
+    color: var(--text);
+  }
+
+  .msg-text p { margin-bottom: 8px; }
+  .msg-text p:last-child { margin-bottom: 0; }
+
+  /* Meal plan card */
+  .meal-plan {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    margin-top: 12px;
+  }
+
+  .meal-plan-header {
+    padding: 14px 18px;
+    border-bottom: 1px solid var(--border);
+    display: flex; justify-content: space-between; align-items: center;
+  }
+
+  .meal-plan-title {
+    font-family: 'Instrument Serif', serif;
+    font-size: 16px;
+  }
+
+  .meal-plan-stats {
+    display: flex; gap: 16px;
+  }
+
+  .mps { font-size: 12px; color: var(--muted); }
+  .mps span { color: var(--accent); font-weight: 500; }
+
+  .day-tabs {
+    display: flex;
+    overflow-x: auto;
+    padding: 0 18px;
+    gap: 2px;
+    border-bottom: 1px solid var(--border);
+    scrollbar-width: none;
+  }
+  .day-tabs::-webkit-scrollbar { display: none; }
+
+  .day-tab {
+    padding: 10px 14px;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--muted);
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    transition: all 0.15s;
+    white-space: nowrap;
+    font-family: inherit;
+    background: none; border-top: none; border-left: none; border-right: none;
+  }
+  .day-tab:hover { color: var(--text); }
+  .day-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+  .day-content { padding: 16px 18px; }
+
+  .meal-row {
+    display: grid;
+    grid-template-columns: 80px 1fr auto;
+    align-items: start;
+    gap: 10px;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .meal-row:last-child { border-bottom: none; }
+
+  .meal-label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--muted);
+    padding-top: 2px;
+  }
+
+  .meal-products { display: flex; flex-direction: column; gap: 3px; }
+
+  .meal-product {
+    font-size: 13px;
+    color: var(--text);
+  }
+
+  .meal-product-qty {
+    font-size: 11px;
+    color: var(--muted);
+    margin-left: 4px;
+  }
+
+  .meal-meta {
+    text-align: right;
+  }
+
+  .meal-cal { font-size: 12px; color: var(--accent); font-weight: 500; }
+  .meal-cost { font-size: 11px; color: var(--muted); }
+
+  /* Product grid */
+  .product-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    margin-top: 12px;
+  }
+
+  .product-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 12px;
+    transition: border-color 0.15s;
+  }
+  .product-card:hover { border-color: var(--border2); }
+
+  .pc-category {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--muted);
+    margin-bottom: 5px;
+  }
+
+  .pc-name {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text);
+    margin-bottom: 6px;
+    line-height: 1.3;
+  }
+
+  .pc-macros {
+    display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 8px;
+  }
+
+  .macro-tag {
+    font-size: 10px;
+    padding: 2px 7px;
+    border-radius: 20px;
+    background: var(--surface2);
+    color: var(--muted);
+  }
+  .macro-tag.protein { background: rgba(90,150,224,0.1); color: #7ab0e0; }
+  .macro-tag.calories { background: rgba(212,168,67,0.1); color: var(--amber); }
+
+  .pc-footer {
+    display: flex; justify-content: space-between; align-items: center;
+  }
+
+  .pc-price { font-size: 14px; font-weight: 500; color: var(--accent); }
+  .pc-weight { font-size: 11px; color: var(--muted); }
+
+  .pc-rating { font-size: 10px; color: var(--muted); }
+  .pc-rating span { color: var(--amber); }
+
+  /* Input area */
+  .input-area {
+    padding: 16px 28px 22px;
+    flex-shrink: 0;
+    border-top: 1px solid var(--border);
+    background: var(--bg);
+  }
+
+  .input-box {
+    display: flex;
+    align-items: flex-end;
+    gap: 10px;
+    background: var(--surface);
+    border: 1px solid var(--border2);
+    border-radius: var(--radius);
+    padding: 12px 14px;
+    transition: border-color 0.2s;
+  }
+  .input-box:focus-within {
+    border-color: rgba(180,224,90,0.35);
+    box-shadow: 0 0 0 3px var(--accent-glow);
+  }
+
+  .input-field {
+    flex: 1;
+    background: transparent;
+    border: none;
+    outline: none;
+    color: var(--text);
+    font-size: 14px;
+    font-family: inherit;
+    resize: none;
+    line-height: 1.5;
+    min-height: 22px;
+    max-height: 120px;
+  }
+  .input-field::placeholder { color: var(--muted); }
+
+  .send-btn {
+    width: 34px; height: 34px;
+    background: var(--accent);
+    border: none;
+    border-radius: 9px;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    transition: all 0.15s;
+    color: #0e0f0c;
+  }
+  .send-btn:hover { background: #c8f070; transform: scale(1.04); }
+  .send-btn:active { transform: scale(0.97); }
+  .send-btn svg { width: 15px; height: 15px; }
+
+  .input-footer {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-top: 8px;
+    padding: 0 2px;
+  }
+
+  .input-hint { font-size: 11px; color: var(--muted); }
+  .token-bar { font-size: 11px; color: var(--muted); }
+  .token-bar span { color: var(--text); }
+
+  /* Typing indicator */
+  .typing { display: flex; gap: 4px; align-items: center; padding: 2px 0; }
+  .typing-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--muted);
+    animation: pulse 1.2s ease-in-out infinite;
+  }
+  .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+  .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+
+  /* Streaming cursor */
+  .cursor {
+    display: inline-block;
+    width: 2px; height: 14px;
+    background: var(--accent);
+    margin-left: 2px;
+    vertical-align: text-bottom;
+    animation: blink 1s step-end infinite;
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes pulse {
+    0%, 60%, 100% { opacity: 0.3; transform: scale(0.85); }
+    30% { opacity: 1; transform: scale(1); }
+  }
+
+  @keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0; }
+  }
+
+  .divider {
+    display: flex; align-items: center; gap: 12px;
+    color: var(--muted); font-size: 11px;
+    margin: 4px 0;
+  }
+  .divider::before, .divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <div class="logo">
+    <div class="logo-icon">🥦</div>
+    <div>
+      <div class="logo-text">Pantry</div>
+      <div class="logo-sub">AI Shopping</div>
+    </div>
+  </div>
+
+  <button class="new-chat-btn" onclick="showWelcome()">
+    <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
+    New conversation
+  </button>
+
+  <div class="section-label">Recent</div>
+
+  <div class="chat-item active">
+    <div class="chat-dot"></div>
+    7-day weight loss plan
+  </div>
+  <div class="chat-item" onclick="this.parentElement.querySelectorAll('.chat-item').forEach(e=>e.classList.remove('active'));this.classList.add('active')">
+    <div class="chat-dot" style="background:var(--muted)"></div>
+    High protein breakfast
+  </div>
+  <div class="chat-item" onclick="this.parentElement.querySelectorAll('.chat-item').forEach(e=>e.classList.remove('active'));this.classList.add('active')">
+    <div class="chat-dot" style="background:var(--muted)"></div>
+    Vegan dinner ideas
+  </div>
+  <div class="chat-item" onclick="this.parentElement.querySelectorAll('.chat-item').forEach(e=>e.classList.remove('active'));this.classList.add('active')">
+    <div class="chat-dot" style="background:var(--muted)"></div>
+    Budget shopping €40
+  </div>
+  <div class="chat-item" onclick="this.parentElement.querySelectorAll('.chat-item').forEach(e=>e.classList.remove('active'));this.classList.add('active')">
+    <div class="chat-dot" style="background:var(--muted)"></div>
+    Keto meal plan week 2
+  </div>
+
+  <div class="sidebar-footer">
+    <div class="section-label" style="padding-top:0">Database</div>
+    <div class="stat-row">
+      <span class="stat-label">Products</span>
+      <span class="stat-value">10,000</span>
+    </div>
+    <div class="stat-row">
+      <span class="stat-label">Categories</span>
+      <span class="stat-value">15</span>
+    </div>
+    <div class="stat-row">
+      <span class="stat-label">Vector store</span>
+      <span class="stat-value">ChromaDB</span>
+    </div>
+    <div class="stat-row">
+      <span class="stat-label">Model</span>
+      <span class="stat-value">Gemini 2.5</span>
+    </div>
+  </div>
+</aside>
+
+<!-- MAIN -->
+<main class="main">
+
+  <!-- Header -->
+  <div class="header">
+    <div class="header-title">7-day weight loss plan</div>
+    <div class="header-badges">
+      <div class="badge badge-green">● Live</div>
+      <div class="badge badge-gray">RAG · HyDE</div>
+      <div class="badge badge-gray">k=20 → rerank 5</div>
+    </div>
+  </div>
+
+  <!-- Chat window -->
+  <div class="chat-window" id="chatWindow">
+
+    <!-- Welcome state (hidden when there are messages) -->
+    <div class="welcome" id="welcome" style="display:none">
+      <div class="welcome-icon">🛒</div>
+      <div class="welcome-title">What are we cooking?</div>
+      <div class="welcome-sub">Ask me for meal plans, budget baskets, nutrition advice, or help finding the perfect products.</div>
+      <div class="chips">
+        <button class="chip" onclick="sendChip(this)">7-day weight loss plan, €60</button>
+        <button class="chip" onclick="sendChip(this)">High protein breakfast options</button>
+        <button class="chip" onclick="sendChip(this)">Vegan dinner ideas this week</button>
+        <button class="chip" onclick="sendChip(this)">Cheapest high-protein foods</button>
+        <button class="chip" onclick="sendChip(this)">Muscle gain shopping list €80</button>
+        <button class="chip" onclick="sendChip(this)">Low sugar snacks under 100 kcal</button>
+      </div>
+    </div>
+
+    <!-- User message -->
+    <div class="msg" style="animation-delay:0s">
+      <div class="msg-avatar user">👤</div>
+      <div class="msg-body">
+        <div class="msg-name">You</div>
+        <div class="msg-text">Give me a 7-day weight loss meal plan with a €60 weekly budget. I want high protein, low carb options.</div>
+      </div>
+    </div>
+
+    <div class="divider">Retrieved 20 products · reranked to 5 per slot · 28 slots total</div>
+
+    <!-- AI response -->
+    <div class="msg" style="animation-delay:0.1s">
+      <div class="msg-avatar ai">✦</div>
+      <div class="msg-body">
+        <div class="msg-name">Pantry AI</div>
+        <div class="msg-text">
+          <p>Here's your 7-day high-protein, low-carb meal plan. Total estimated cost: <strong style="color:var(--accent)">€57.40</strong> — €2.60 under budget. Daily average: 1,680 kcal · 142g protein · 68g fat · 42g net carbs.</p>
+        </div>
+
+        <!-- Meal plan card -->
+        <div class="meal-plan">
+          <div class="meal-plan-header">
+            <div class="meal-plan-title">Weekly Meal Plan</div>
+            <div class="meal-plan-stats">
+              <div class="mps">Total: <span>€57.40</span></div>
+              <div class="mps">Avg/day: <span>1,680 kcal</span></div>
+              <div class="mps">Protein: <span>142g/day</span></div>
+            </div>
+          </div>
+
+          <div class="day-tabs" id="dayTabs">
+            <button class="day-tab active" onclick="switchDay(0)">Mon</button>
+            <button class="day-tab" onclick="switchDay(1)">Tue</button>
+            <button class="day-tab" onclick="switchDay(2)">Wed</button>
+            <button class="day-tab" onclick="switchDay(3)">Thu</button>
+            <button class="day-tab" onclick="switchDay(4)">Fri</button>
+            <button class="day-tab" onclick="switchDay(5)">Sat</button>
+            <button class="day-tab" onclick="switchDay(6)">Sun</button>
+          </div>
+
+          <div class="day-content" id="dayContent">
+            <!-- Day 1 content rendered by JS -->
+          </div>
+        </div>
+
+        <!-- Product suggestions -->
+        <div style="margin-top:16px;font-size:13px;color:var(--muted);margin-bottom:8px">Top products used in this plan:</div>
+        <div class="product-grid">
+          <div class="product-card">
+            <div class="pc-category">Meat & Seafood</div>
+            <div class="pc-name">PrimeCut Chicken Breast Premium</div>
+            <div class="pc-macros">
+              <span class="macro-tag protein">31g protein</span>
+              <span class="macro-tag calories">165 kcal</span>
+              <span class="macro-tag">2.1g fat</span>
+            </div>
+            <div class="pc-footer">
+              <div><div class="pc-price">€4.80</div><div class="pc-weight">0.5kg</div></div>
+              <div class="pc-rating"><span>★</span> 4.6</div>
+            </div>
+          </div>
+          <div class="product-card">
+            <div class="pc-category">Dairy & Eggs</div>
+            <div class="pc-name">DairyPure Greek Yogurt High Protein</div>
+            <div class="pc-macros">
+              <span class="macro-tag protein">17g protein</span>
+              <span class="macro-tag calories">97 kcal</span>
+              <span class="macro-tag">0.4g fat</span>
+            </div>
+            <div class="pc-footer">
+              <div><div class="pc-price">€2.10</div><div class="pc-weight">0.5kg</div></div>
+              <div class="pc-rating"><span>★</span> 4.8</div>
+            </div>
+          </div>
+          <div class="product-card">
+            <div class="pc-category">Meat & Seafood</div>
+            <div class="pc-name">OceanFresh Salmon Fillet Natural</div>
+            <div class="pc-macros">
+              <span class="macro-tag protein">25g protein</span>
+              <span class="macro-tag calories">208 kcal</span>
+              <span class="macro-tag">13g fat</span>
+            </div>
+            <div class="pc-footer">
+              <div><div class="pc-price">€6.20</div><div class="pc-weight">0.4kg</div></div>
+              <div class="pc-rating"><span>★</span> 4.7</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Follow-up user message -->
+    <div class="msg" style="animation-delay:0.2s">
+      <div class="msg-avatar user">👤</div>
+      <div class="msg-body">
+        <div class="msg-name">You</div>
+        <div class="msg-text">Can you swap Wednesday dinner for something vegetarian?</div>
+      </div>
+    </div>
+
+    <!-- AI typing response -->
+    <div class="msg" id="typingMsg" style="animation-delay:0.3s">
+      <div class="msg-avatar ai">✦</div>
+      <div class="msg-body">
+        <div class="msg-name">Pantry AI</div>
+        <div class="msg-text" id="streamText">
+          <div class="typing" id="typingDots">
+            <div class="typing-dot"></div>
+            <div class="typing-dot"></div>
+            <div class="typing-dot"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- end chat window -->
+
+  <!-- Input area -->
+  <div class="input-area">
+    <div class="input-box">
+      <textarea
+        class="input-field"
+        id="inputField"
+        placeholder="Ask about meal plans, products, nutrition..."
+        rows="1"
+        onkeydown="handleKey(event)"
+        oninput="autoResize(this)"
+      ></textarea>
+      <button class="send-btn" onclick="handleSend()">
+        <svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+          <line x1="22" y1="2" x2="11" y2="13"></line>
+          <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+        </svg>
+      </button>
+    </div>
+    <div class="input-footer">
+      <span class="input-hint">Enter to send · Shift+Enter for new line</span>
+      <span class="token-bar">Context: <span>4.2K</span> / 128K tokens</span>
+    </div>
+  </div>
+
+</main>
+
+<script>
+const days = [
+  {
+    name: "Monday",
+    meals: [
+      { label: "Breakfast", products: ["Greek Yogurt High Protein × 200g", "Blueberries × 80g"], kcal: 220, cost: 1.60 },
+      { label: "Lunch", products: ["Chicken Breast × 150g", "Spinach salad × 100g", "Olive Oil × 10ml"], kcal: 380, cost: 3.20 },
+      { label: "Dinner", products: ["Salmon Fillet × 160g", "Broccoli × 150g", "Garlic × 5g"], kcal: 440, cost: 4.10 },
+      { label: "Snack", products: ["Almonds Natural × 30g", "Eggs (Free Range) × 1"], kcal: 250, cost: 0.80 },
+    ],
+    total_kcal: 1290, total_cost: 9.70
+  },
+  {
+    name: "Tuesday",
+    meals: [
+      { label: "Breakfast", products: ["Eggs (Free Range) × 3", "Spinach × 50g"], kcal: 260, cost: 1.10 },
+      { label: "Lunch", products: ["Ground Beef × 120g", "Bell Pepper × 100g", "Tomato × 80g"], kcal: 420, cost: 3.50 },
+      { label: "Dinner", products: ["Chicken Thigh × 160g", "Cauliflower × 150g"], kcal: 460, cost: 3.80 },
+      { label: "Snack", products: ["Cottage Cheese × 150g", "Walnuts × 20g"], kcal: 230, cost: 1.20 },
+    ],
+    total_kcal: 1370, total_cost: 9.60
+  },
+  {
+    name: "Wednesday",
+    meals: [
+      { label: "Breakfast", products: ["Greek Yogurt × 200g", "Almonds × 25g"], kcal: 280, cost: 1.80 },
+      { label: "Lunch", products: ["Tuna Steak × 140g", "Cucumber × 100g", "Feta × 30g"], kcal: 350, cost: 3.90 },
+      { label: "Dinner", products: ["Beef Steak × 160g", "Asparagus × 120g", "Butter × 10g"], kcal: 510, cost: 5.20 },
+      { label: "Snack", products: ["Eggs (Free Range) × 2", "Cherry Tomato × 60g"], kcal: 170, cost: 0.70 },
+    ],
+    total_kcal: 1310, total_cost: 11.60
+  },
+];
+
+let activeDay = 0;
+
+function renderDay(dayIdx) {
+  const day = days[dayIdx % days.length];
+  const el = document.getElementById('dayContent');
+  el.innerHTML = day.meals.map(m => `
+    <div class="meal-row">
+      <div class="meal-label">${m.label}</div>
+      <div class="meal-products">
+        ${m.products.map(p => `<div class="meal-product">${p}</div>`).join('')}
+      </div>
+      <div class="meal-meta">
+        <div class="meal-cal">${m.kcal} kcal</div>
+        <div class="meal-cost">€${m.cost.toFixed(2)}</div>
+      </div>
+    </div>
+  `).join('') + `<div style="display:flex;justify-content:flex-end;gap:16px;padding-top:10px;font-size:12px">
+    <span style="color:var(--muted)">Day total:</span>
+    <span style="color:var(--accent);font-weight:500">${day.total_kcal} kcal</span>
+    <span style="color:var(--accent);font-weight:500">€${day.total_cost.toFixed(2)}</span>
+  </div>`;
+}
+
+function switchDay(idx) {
+  activeDay = idx;
+  document.querySelectorAll('.day-tab').forEach((t, i) => t.classList.toggle('active', i === idx));
+  renderDay(idx);
+}
+
+renderDay(0);
+
+// Streaming simulation
+const streamLines = [
+  "Sure! For Wednesday dinner I found a great vegetarian option that keeps your protein target. ",
+  "I'll swap the beef steak for ",
+  "**FreshFarm Halloumi Premium** (200g) paired with roasted bell peppers and zucchini. ",
+  "\n\nThis gives you **28g protein**, 380 kcal, and costs €3.80 — actually €1.40 cheaper than the original. ",
+  "Your Wednesday total drops to €10.20 and the weekly cost becomes **€56.00**.",
+];
+
+let streamIdx = 0;
+let charIdx = 0;
+let fullText = '';
+let streaming = false;
+
+function startStreaming() {
+  const typingDots = document.getElementById('typingDots');
+  const streamEl = document.getElementById('streamText');
+  setTimeout(() => {
+    typingDots.style.display = 'none';
+    streaming = true;
+    streamChars();
+  }, 1200);
+}
+
+function streamChars() {
+  if (streamIdx >= streamLines.length) {
+    document.getElementById('inputField').disabled = false;
+    return;
+  }
+  const line = streamLines[streamIdx];
+  if (charIdx < line.length) {
+    fullText += line[charIdx];
+    renderStreamText();
+    charIdx++;
+    setTimeout(streamChars, 18 + Math.random() * 20);
+  } else {
+    streamIdx++;
+    charIdx = 0;
+    setTimeout(streamChars, 40);
+  }
+}
+
+function renderStreamText() {
+  const el = document.getElementById('streamText');
+  const rendered = fullText
+    .replace(/\*\*(.*?)\*\*/g, '<strong style="color:var(--text)">$1</strong>')
+    .replace(/\n\n/g, '</p><p>')
+  el.innerHTML = `<p>${rendered}<span class="cursor"></span></p>`;
+}
+
+startStreaming();
+
+function handleKey(e) {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault();
+    handleSend();
+  }
+}
+
+function handleSend() {
+  const field = document.getElementById('inputField');
+  const val = field.value.trim();
+  if (!val) return;
+  appendUserMsg(val);
+  field.value = '';
+  autoResize(field);
+}
+
+function sendChip(btn) {
+  document.getElementById('welcome').style.display = 'none';
+  appendUserMsg(btn.textContent);
+}
+
+function appendUserMsg(text) {
+  const cw = document.getElementById('chatWindow');
+  const el = document.createElement('div');
+  el.className = 'msg';
+  el.innerHTML = `
+    <div class="msg-avatar user">👤</div>
+    <div class="msg-body">
+      <div class="msg-name">You</div>
+      <div class="msg-text">${text}</div>
+    </div>`;
+  cw.appendChild(el);
+  cw.scrollTop = cw.scrollHeight;
+}
+
+function autoResize(el) {
+  el.style.height = 'auto';
+  el.style.height = Math.min(el.scrollHeight, 120) + 'px';
+}
+
+function showWelcome() {
+  const cw = document.getElementById('chatWindow');
+  cw.innerHTML = `<div id="welcome" style="display:flex;flex-direction:column;align-items:center;justify-content:center;flex:1;gap:12px;padding:40px 0;animation:fadeUp 0.5s ease both">
+    <div class="welcome-icon">🛒</div>
+    <div class="welcome-title">What are we cooking?</div>
+    <div class="welcome-sub">Ask me for meal plans, budget baskets, nutrition advice, or help finding the perfect products.</div>
+    <div class="chips">
+      <button class="chip" onclick="sendChip(this)">7-day weight loss plan, €60</button>
+      <button class="chip" onclick="sendChip(this)">High protein breakfast options</button>
+      <button class="chip" onclick="sendChip(this)">Vegan dinner ideas this week</button>
+      <button class="chip" onclick="sendChip(this)">Cheapest high-protein foods</button>
+      <button class="chip" onclick="sendChip(this)">Muscle gain shopping list €80</button>
+      <button class="chip" onclick="sendChip(this)">Low sugar snacks under 100 kcal</button>
+    </div>
+  </div>`;
+}
+</script>
+</body>
+</html>

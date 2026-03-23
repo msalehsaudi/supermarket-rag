@@ -11,10 +11,10 @@ from fastapi.responses import JSONResponse, StreamingResponse
 from pydantic import BaseModel
 from typing import Optional, List
 
-# Import Google/Hugging Face chains
+# Import RAG-enabled chains
+from src.chains.simple_rag_planner import simple_rag_meal_plan_chain
 from src.chains.google_hf_chains import (
     google_classify_intent,
-    google_meal_plan_chain,
     google_budget_optimizer_chain,
     google_product_search_chain
 )
@@ -175,14 +175,14 @@ async def chat_endpoint(request: ChatRequest):
         
         # Route to appropriate chain
         if intent == "meal_plan":
-            response_generator = google_meal_plan_chain(request.message, constraints)
+            response_generator = simple_rag_meal_plan_chain(request.message, constraints)
         elif intent == "budget_basket":
             response_generator = google_budget_optimizer_chain(request.message, constraints)
         elif intent == "product_search":
             response_generator = google_product_search_chain(request.message, constraints)
         else:
             # General response
-            response_generator = google_meal_plan_chain(request.message, constraints)
+            response_generator = simple_rag_meal_plan_chain(request.message, constraints)
         
         # Stream response
         async def generate_response():

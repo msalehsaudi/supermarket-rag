@@ -5,6 +5,7 @@ from pathlib import Path
 from typing import Final
 
 # API Keys
+OPENAI_API_KEY: str = os.getenv("OPENAI_API_KEY", "")
 GOOGLE_API_KEY: str = os.getenv("GOOGLE_API_KEY", "")
 HUGGINGFACE_API_KEY: str = os.getenv("HUGGINGFACE_API_KEY", "")
 
@@ -16,11 +17,13 @@ CHECKPOINT_PATH: Final[Path] = CHROMA_DB_PATH / ".ingest_checkpoint.json"
 
 # Embedding settings (using Hugging Face)
 HF_EMBEDDING_MODEL: Final[str] = "sentence-transformers/all-MiniLM-L6-v2"
+EMBEDDING_MODEL: Final[str] = HF_EMBEDDING_MODEL
 HF_EMBEDDING_DIM: Final[int] = 384
 EMBEDDING_BATCH_SIZE: Final[int] = 50
 
 # LLM settings (using Google Gemini)
 GEMINI_MODEL: Final[str] = "gemini-2.5-flash"
+DEFAULT_LLM_MODEL: Final[str] = GEMINI_MODEL
 LLM_TEMPERATURE: Final[float] = 0.1
 LLM_MAX_TOKENS: Final[int] = 4000
 
