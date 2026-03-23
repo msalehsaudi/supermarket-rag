@@ -1,0 +1,766 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pantry — Supermarket AI (Connected)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0e0f0c;
+    --surface: #161712;
+    --surface2: #1d1e1a;
+    --border: rgba(255,255,255,0.07);
+    --border2: rgba(255,255,255,0.12);
+    --text: #e8e6df;
+    --muted: #7a7870;
+    --accent: #b4e05a;
+    --accent-dim: rgba(180,224,90,0.12);
+    --accent-glow: rgba(180,224,90,0.06);
+    --user-bg: #1f2119;
+    --tag-bg: rgba(180,224,90,0.1);
+    --red: #e06060;
+    --amber: #d4a843;
+    --radius: 16px;
+    --radius-sm: 10px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    height: 100vh;
+    display: flex;
+    overflow: hidden;
+    font-size: 14px;
+  }
+
+  /* ── SIDEBAR ── */
+  .sidebar {
+    width: 240px;
+    flex-shrink: 0;
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    padding: 20px 14px;
+    gap: 8px;
+  }
+
+  .logo {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 18px 0;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .logo-icon {
+    font-size: 32px;
+    margin-bottom: 8px;
+  }
+
+  .logo-text {
+    font-family: 'Instrument Serif', serif;
+    font-size: 20px;
+    color: var(--text);
+    letter-spacing: -0.3px;
+  }
+
+  .logo-sub {
+    font-size: 10px;
+    color: var(--muted);
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    margin-top: 1px;
+  }
+
+  .section-label {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: var(--muted);
+    padding: 12px 8px 4px;
+  }
+
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 8px;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+
+  .nav-item:hover { background: var(--surface2); }
+  .nav-item.active { background: var(--accent-dim); color: var(--accent); }
+
+  .nav-icon { font-size: 18px; }
+  .nav-text { font-weight: 500; }
+
+  /* ── MAIN CONTENT ── */
+  .main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .header {
+    padding: 20px 24px;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface);
+  }
+
+  .header-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 8px;
+  }
+
+  .header-title {
+    font-family: 'Instrument Serif', serif;
+    font-size: 17px;
+    color: var(--text);
+    letter-spacing: -0.2px;
+  }
+
+  .header-badges {
+    display: flex;
+    gap: 6px;
+  }
+
+  .badge {
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.2px;
+  }
+  .badge-green { background: var(--tag-bg); color: var(--accent); border: 1px solid rgba(180,224,90,0.15); }
+  .badge-gray { background: var(--surface2); color: var(--muted); border: 1px solid var(--border); }
+
+  .header-sub {
+    font-size: 12px;
+    color: var(--muted);
+  }
+
+  /* ── CHAT WINDOW ── */
+  .chat-container {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    padding: 20px;
+  }
+
+  .chat-window {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px 0;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .msg {
+    display: flex;
+    gap: 12px;
+    animation: fadeUp 0.3s ease both;
+  }
+
+  .msg-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    flex-shrink: 0;
+  }
+
+  .msg-avatar.user {
+    background: var(--user-bg);
+  }
+
+  .msg-avatar.bot {
+    background: var(--accent-dim);
+    color: var(--accent);
+  }
+
+  .msg-content {
+    flex: 1;
+    max-width: 80%;
+  }
+
+  .msg-bubble {
+    background: var(--surface2);
+    padding: 12px 16px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border);
+  }
+
+  .msg.user .msg-bubble {
+    background: var(--user-bg);
+    margin-left: auto;
+  }
+
+  .msg-text {
+    line-height: 1.5;
+    white-space: pre-wrap;
+  }
+
+  .typing-dots {
+    display: flex;
+    gap: 4px;
+    padding: 8px 0;
+  }
+
+  .typing-dot {
+    width: 6px;
+    height: 6px;
+    background: var(--muted);
+    border-radius: 50%;
+    animation: typing 1.4s infinite;
+  }
+  .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+  .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+
+  /* ── INPUT ── */
+  .input-container {
+    padding: 16px 0;
+    border-top: 1px solid var(--border);
+  }
+
+  .input-wrapper {
+    display: flex;
+    gap: 12px;
+    align-items: flex-end;
+  }
+
+  .input-field {
+    flex: 1;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 12px 16px;
+    color: var(--text);
+    font-family: inherit;
+    font-size: 14px;
+    resize: none;
+    min-height: 44px;
+    max-height: 120px;
+    line-height: 1.4;
+  }
+
+  .input-field:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 2px var(--accent-glow);
+  }
+
+  .send-btn {
+    background: var(--accent);
+    color: var(--bg);
+    border: none;
+    border-radius: var(--radius-sm);
+    padding: 12px 20px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .send-btn:hover {
+    background: #9dd04a;
+    transform: translateY(-1px);
+  }
+
+  .send-btn:disabled {
+    background: var(--surface2);
+    color: var(--muted);
+    cursor: not-allowed;
+    transform: none;
+  }
+
+  /* ── WELCOME SCREEN ── */
+  .welcome {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    flex: 1;
+    gap: 12px;
+    padding: 40px 0;
+    animation: fadeUp 0.5s ease both;
+  }
+
+  .welcome-icon { font-size: 48px; }
+  .welcome-title {
+    font-family: 'Instrument Serif', serif;
+    font-size: 24px;
+    color: var(--text);
+    letter-spacing: -0.5px;
+    text-align: center;
+  }
+  .welcome-sub {
+    color: var(--muted);
+    text-align: center;
+    max-width: 300px;
+  }
+
+  .suggestions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: center;
+    margin-top: 20px;
+  }
+
+  .suggestion-chip {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 8px 16px;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .suggestion-chip:hover {
+    background: var(--accent-dim);
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+
+  /* ── ANIMATIONS ── */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes typing {
+    0%, 60%, 100% { transform: translateY(0); }
+    30% { transform: translateY(-8px); }
+  }
+
+  .cursor {
+    display: inline-block;
+    width: 2px;
+    height: 1.2em;
+    background: var(--accent);
+    animation: blink 1s infinite;
+    margin-left: 2px;
+  }
+
+  @keyframes blink {
+    0%, 50% { opacity: 1; }
+    51%, 100% { opacity: 0; }
+  }
+
+  /* ── STATUS ── */
+  .status {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 8px 12px;
+    font-size: 11px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    z-index: 1000;
+  }
+
+  .status-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--accent);
+    animation: pulse 2s infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+  }
+
+  .status.error .status-dot {
+    background: var(--red);
+    animation: none;
+  }
+
+  .status-text {
+    color: var(--muted);
+  }
+
+  .status.connected .status-dot {
+    background: var(--accent);
+  }
+</style>
+</head>
+<body>
+
+<!-- Sidebar -->
+<aside class="sidebar">
+  <div class="logo">
+    <div class="logo-icon">🛒</div>
+    <div class="logo-text">Pantry</div>
+    <div class="logo-sub">Supermarket AI</div>
+  </div>
+
+  <nav>
+    <div class="section-label">Main</div>
+    <div class="nav-item active">
+      <span class="nav-icon">💬</span>
+      <span class="nav-text">Chat</span>
+    </div>
+    <div class="nav-item">
+      <span class="nav-icon">🍽️</span>
+      <span class="nav-text">Meal Plans</span>
+    </div>
+    <div class="nav-item">
+      <span class="nav-icon">💰</span>
+      <span class="nav-text">Budget</span>
+    </div>
+    <div class="nav-item">
+      <span class="nav-icon">🔍</span>
+      <span class="nav-text">Products</span>
+    </div>
+  </nav>
+
+  <div style="flex: 1;"></div>
+
+  <div class="section-label">System</div>
+  <div class="nav-item" onclick="showStats()">
+    <span class="nav-icon">📊</span>
+    <span class="nav-text">Statistics</span>
+  </div>
+</aside>
+
+<!-- Main Content -->
+<main class="main">
+  <header class="header">
+    <div class="header-top">
+      <h1 class="header-title">Supermarket Assistant</h1>
+      <div class="header-badges">
+        <span class="badge badge-green">Google Gemini</span>
+        <span class="badge badge-gray">HF Embeddings</span>
+      </div>
+    </div>
+    <div class="header-sub">AI-powered shopping and meal planning with 10,000+ products</div>
+  </header>
+
+  <div class="chat-container">
+    <div class="chat-window" id="chatWindow">
+      <div class="welcome" id="welcome">
+        <div class="welcome-icon">🛒</div>
+        <div class="welcome-title">What are we cooking?</div>
+        <div class="welcome-sub">Ask me about meal plans, budget optimization, or product recommendations</div>
+        <div class="suggestions">
+          <button class="suggestion-chip" onclick="sendChip(this)">7-day meal plan €60</button>
+          <button class="suggestion-chip" onclick="sendChip(this)">Budget shopping €30</button>
+          <button class="suggestion-chip" onclick="sendChip(this)">High protein foods</button>
+          <button class="suggestion-chip" onclick="sendChip(this)">Italian cheeses</button>
+          <button class="suggestion-chip" onclick="sendChip(this)">Vegan meal plan</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="input-container">
+      <div class="input-wrapper">
+        <textarea 
+          class="input-field" 
+          id="inputField" 
+          placeholder="Ask about meal plans, budget shopping, or products..."
+          rows="1"
+          onkeydown="handleKey(event)"
+          oninput="autoResize(this)"
+        ></textarea>
+        <button class="send-btn" id="sendBtn" onclick="handleSend()">Send</button>
+      </div>
+    </div>
+  </div>
+</main>
+
+<!-- Status Indicator -->
+<div class="status connected" id="status">
+  <div class="status-dot"></div>
+  <span class="status-text" id="statusText">Connected to API</span>
+</div>
+
+<script>
+// API Configuration
+const API_URL = 'http://localhost:8002';
+
+// Global state
+let conversationId = null;
+let isStreaming = false;
+
+// Initialize
+document.addEventListener('DOMContentLoaded', () => {
+  checkAPIHealth();
+  autoResize(document.getElementById('inputField'));
+});
+
+// Check API health
+async function checkAPIHealth() {
+  try {
+    const response = await fetch(`${API_URL}/health`);
+    
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    }
+    
+    const data = await response.json();
+    
+    if (data.status === 'healthy') {
+      updateStatus('connected', `Connected - ${data.mode || 'Google+HF'}`);
+    } else {
+      updateStatus('error', 'API not healthy');
+    }
+  } catch (error) {
+    updateStatus('error', 'API connection failed');
+    console.error('Health check failed:', error);
+  }
+}
+
+// Update status indicator
+function updateStatus(type, message) {
+  const statusEl = document.getElementById('status');
+  const statusText = document.getElementById('statusText');
+  
+  statusEl.className = `status ${type}`;
+  statusText.textContent = message;
+}
+
+// Handle keyboard events
+function handleKey(e) {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault();
+    handleSend();
+  }
+}
+
+// Auto-resize textarea
+function autoResize(el) {
+  el.style.height = 'auto';
+  el.style.height = Math.min(el.scrollHeight, 120) + 'px';
+}
+
+// Send message
+async function handleSend() {
+  const field = document.getElementById('inputField');
+  const message = field.value.trim();
+  
+  if (!message || isStreaming) return;
+  
+  appendUserMessage(message);
+  field.value = '';
+  autoResize(field);
+  
+  await sendToAPI(message);
+}
+
+// Send suggestion chip
+function sendChip(btn) {
+  document.getElementById('welcome').style.display = 'none';
+  const message = btn.textContent;
+  appendUserMessage(message);
+  sendToAPI(message);
+}
+
+// Append user message
+function appendUserMessage(text) {
+  const chatWindow = document.getElementById('chatWindow');
+  const messageEl = document.createElement('div');
+  messageEl.className = 'msg user';
+  messageEl.innerHTML = `
+    <div class="msg-avatar user">👤</div>
+    <div class="msg-content">
+      <div class="msg-bubble">
+        <div class="msg-text">${text}</div>
+      </div>
+    </div>
+  `;
+  
+  chatWindow.appendChild(messageEl);
+  chatWindow.scrollTop = chatWindow.scrollHeight;
+}
+
+// Append bot message
+function appendBotMessage(text) {
+  const chatWindow = document.getElementById('chatWindow');
+  const messageEl = document.createElement('div');
+  messageEl.className = 'msg bot';
+  messageEl.innerHTML = `
+    <div class="msg-avatar bot">🤖</div>
+    <div class="msg-content">
+      <div class="msg-bubble">
+        <div class="msg-text">${text}</div>
+      </div>
+    </div>
+  `;
+  
+  chatWindow.appendChild(messageEl);
+  chatWindow.scrollTop = chatWindow.scrollHeight;
+}
+
+// Show typing indicator
+function showTypingIndicator() {
+  const chatWindow = document.getElementById('chatWindow');
+  const typingEl = document.createElement('div');
+  typingEl.className = 'msg bot';
+  typingEl.id = 'typingIndicator';
+  typingEl.innerHTML = `
+    <div class="msg-avatar bot">🤖</div>
+    <div class="msg-content">
+      <div class="msg-bubble">
+        <div class="typing-dots">
+          <div class="typing-dot"></div>
+          <div class="typing-dot"></div>
+          <div class="typing-dot"></div>
+        </div>
+      </div>
+    </div>
+  `;
+  
+  chatWindow.appendChild(typingEl);
+  chatWindow.scrollTop = chatWindow.scrollHeight;
+}
+
+// Hide typing indicator
+function hideTypingIndicator() {
+  const typingEl = document.getElementById('typingIndicator');
+  if (typingEl) {
+    typingEl.remove();
+  }
+}
+
+// Send message to API
+async function sendToAPI(message) {
+  if (isStreaming) return;
+  
+  isStreaming = true;
+  document.getElementById('sendBtn').disabled = true;
+  
+  // Hide welcome screen
+  document.getElementById('welcome').style.display = 'none';
+  
+  // Show typing indicator
+  showTypingIndicator();
+  
+  try {
+    updateStatus('connected', 'Thinking...');
+    
+    const response = await fetch(`${API_URL}/chat`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        message: message,
+        conversation_id: conversationId
+      })
+    });
+    
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    }
+    
+    // Get conversation ID from headers
+    const convId = response.headers.get('X-Conversation-ID');
+    if (convId) {
+      conversationId = convId;
+    }
+    
+    // Get intent from headers
+    const intent = response.headers.get('X-Intent') || 'general';
+    
+    // Stream response
+    hideTypingIndicator();
+    updateStatus('connected', `Processing ${intent}...`);
+    
+    const responseText = await response.text();
+    
+    // Update the message
+    updateBotMessage(responseText);
+    updateStatus('connected', 'Ready');
+    
+  } catch (error) {
+    console.error('API Error:', error);
+    hideTypingIndicator();
+    appendBotMessage(`❌ Error: ${error.message}\n\nPlease check if the API server is running at ${API_URL}`);
+    updateStatus('error', 'API Error');
+  } finally {
+    isStreaming = false;
+    document.getElementById('sendBtn').disabled = false;
+  }
+}
+
+// Update bot message in real-time
+function updateBotMessage(text) {
+  let botMessage = document.querySelector('.msg.bot:last-child .msg-text');
+  
+  if (!botMessage) {
+    appendBotMessage(text);
+    botMessage = document.querySelector('.msg.bot:last-child .msg-text');
+  }
+  
+  // Format markdown-style text
+  const formatted = text
+    .replace(/\*\*(.*?)\*\*/g, '<strong style="color:var(--text)">$1</strong>')
+    .replace(/\n\n/g, '</p><p>')
+    .replace(/\n/g, '<br>');
+  
+  botMessage.innerHTML = `<p>${formatted}</p>`;
+  
+  // Scroll to bottom
+  const chatWindow = document.getElementById('chatWindow');
+  chatWindow.scrollTop = chatWindow.scrollHeight;
+}
+
+// Show statistics
+async function showStats() {
+  try {
+    const response = await fetch(`${API_URL}/stats`);
+    
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    }
+    
+    const data = await response.json();
+    
+    const statsText = `
+📊 **System Statistics**
+
+• **Total Products**: ${data.total_products.toLocaleString()}
+• **Categories**: ${data.categories}
+• **Brands**: ${data.brands}
+• **Price Range**: €${data.price_range.min.toFixed(2)} - €${data.price_range.max.toFixed(2)}
+• **API Provider**: ${data.api_config?.provider || 'Google + Hugging Face'}
+
+The system is ready to help with meal planning, budget optimization, and product recommendations!
+    `;
+    
+    appendBotMessage(statsText);
+    
+  } catch (error) {
+    console.error('Stats error:', error);
+    appendBotMessage('❌ Could not fetch statistics');
+  }
+}
+
+// Focus input field on load
+document.getElementById('inputField').focus();
+</script>
+
+</body>
+</html>

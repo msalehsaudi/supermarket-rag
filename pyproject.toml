@@ -1,0 +1,29 @@
+[project]
+name = "rag-project"
+version = "0.1.0"
+description = "Supermarket RAG Chatbot"
+authors = [
+    {name = "Mohammad Saleh", email = "mohammad@example.com"}
+]
+requires-python = ">=3.11"
+dependencies = [
+    "langchain>=0.2.0",
+    "langchain-community>=0.2.0", 
+    "langchain-openai>=0.1.0",
+    "chromadb>=0.5.0",
+    "openai>=1.30.0",
+    "fastapi>=0.111.0",
+    "uvicorn>=0.30.0",
+    "pandas>=2.0.0",
+    "rank-bm25>=0.2.2",
+    "sentence-transformers>=3.0.0",
+    "python-dotenv>=1.0.0",
+    "pydantic>=2.0.0",
+    "pytest>=8.0.0",
+    "pytest-asyncio>=0.23.0",
+]
+
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
